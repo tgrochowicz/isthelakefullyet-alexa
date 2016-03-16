@@ -7,23 +7,13 @@
  * http://amzn.to/1LGWsLG
  */
  
-var https = require('https');
+ var https = require('https');
 
 // Route the incoming request based on type (LaunchRequest, IntentRequest,
 // etc.) The JSON body of the request is provided in the event parameter.
 exports.handler = function (event, context) {
     try {
         console.log("event.session.application.applicationId=" + event.session.application.applicationId);
-
-        /**
-         * Uncomment this if statement and populate with your skill's application ID to
-         * prevent someone else from configuring a skill that sends requests to this function.
-         */
-        /*
-        if (event.session.application.applicationId !== "amzn1.echo-sdk-ams.app.[unique-value-here]") {
-             context.fail("Invalid Application ID");
-        }
-        */
 
         if (event.session.new) {
             onSessionStarted({requestId: event.request.requestId}, event.session);
@@ -83,7 +73,9 @@ function onIntent(intentRequest, session, callback) {
     if ("LakeLevelsIntent" === intentName) {
         getLakeLevels(callback);
     } else if ("AMAZON.HelpIntent" === intentName) {
-        getWelcomeResponse(callback);
+        getHelpResponse(callback);
+    } else if ("AMAZON.StopIntent" === intentName || "AMAZON.CancelIntent" === intentName) {
+        callback(buildExitResponse());
     } else {
         throw "Invalid intent";
     }
@@ -110,6 +102,21 @@ function getWelcomeResponse(callback) {
     // understood, they will be prompted again with this text.
     var repromptText = "Please ask me if the lake is full by saying, " +
         "is the lake full yet";
+    var shouldEndSession = false;
+
+    callback(sessionAttributes,
+        buildSpeechletResponse(cardTitle, speechOutput, repromptText, shouldEndSession));
+}
+
+function getHelpResponse(callback) {
+    // If we wanted to initialize the session to have some attributes we could add those here.
+    var sessionAttributes = {};
+    var cardTitle = "Help";
+    var speechOutput = "This app monitors the water levels of Lake Travis. Try saying: Alexa, ask lake travis if it's full yet";
+    // If the user either does not reply to the welcome message or says something that is not
+    // understood, they will be prompted again with this text.
+    var repromptText = "Please ask me if the lake is full by saying, " +
+        "Alexa, ask Lake Travis if the lake is full yet";
     var shouldEndSession = false;
 
     callback(sessionAttributes,
@@ -158,8 +165,8 @@ function buildSpeechletResponse(title, output, repromptText, shouldEndSession) {
         },
         card: {
             type: "Simple",
-            title: "SessionSpeechlet - " + title,
-            content: "SessionSpeechlet - " + output
+            title: "Lake Travis - " + title,
+            content: "Current Status: " + output
         },
         reprompt: {
             outputSpeech: {
@@ -168,6 +175,16 @@ function buildSpeechletResponse(title, output, repromptText, shouldEndSession) {
             }
         },
         shouldEndSession: shouldEndSession
+    };
+}
+
+function buildExitResponse() {
+    return {
+        outputSpeech: {
+            type: "PlainText",
+            text: "Goodbye"
+        },
+        shouldEndSession: true
     };
 }
 
