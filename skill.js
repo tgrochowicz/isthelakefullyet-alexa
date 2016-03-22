@@ -75,7 +75,7 @@ function onIntent(intentRequest, session, callback) {
     } else if ("AMAZON.HelpIntent" === intentName) {
         getHelpResponse(callback);
     } else if ("AMAZON.StopIntent" === intentName || "AMAZON.CancelIntent" === intentName) {
-        callback(buildExitResponse());
+        callback({}, buildExitResponse());
     } else {
         throw "Invalid intent";
     }
@@ -112,11 +112,11 @@ function getHelpResponse(callback) {
     // If we wanted to initialize the session to have some attributes we could add those here.
     var sessionAttributes = {};
     var cardTitle = "Help";
-    var speechOutput = "This app monitors the water levels of Lake Travis. Try saying: Alexa, ask lake travis if it's full yet";
+    var speechOutput = "This app monitors the water levels of Lake Travis. Try saying: is the lake full yet?";
     // If the user either does not reply to the welcome message or says something that is not
     // understood, they will be prompted again with this text.
     var repromptText = "Please ask me if the lake is full by saying, " +
-        "Alexa, ask Lake Travis if the lake is full yet";
+        "is the lake is full yet?";
     var shouldEndSession = false;
 
     callback(sessionAttributes,
